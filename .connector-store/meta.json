@@ -1,0 +1,17 @@
+{
+    "name": "Mutual TLS Client Authenticator",
+    "owner": "WSO2",
+    "category": "OAuth Client",
+    "documentationUrl": "https://github.com/wso2-extensions/identity-oauth-dpop/blob/main/README.md",
+    "description": "Mutual TLS Client Authenticator allows the authentication of OAuth 2.0 clients using their X509 certificates.",
+    "status": "Active",
+    "labels": ["client-authentication", "mutual-TLS", "oauth2"],
+    "releases": [
+        {
+            "tagName": "2.0.3",
+            "products": [
+                "IS 5.7.0"
+            ]
+        }
+    ]
+}
