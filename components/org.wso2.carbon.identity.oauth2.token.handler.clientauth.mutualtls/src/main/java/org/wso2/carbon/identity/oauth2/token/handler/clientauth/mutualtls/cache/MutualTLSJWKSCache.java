@@ -43,4 +43,17 @@ public class MutualTLSJWKSCache extends AuthenticationBaseCache<MutualTLSJWKSCac
         CarbonUtils.checkSecurity();
         return instance;
     }
+
+    /**
+     * Adds the given cache entry to the cache only if no entry exists for the key.
+     * Use this method when populating the cache as part of read operations to avoid
+     * triggering redundant cache invalidation notifications in clustered deployments.
+     *
+     * @param key   cache key
+     * @param entry cache entry
+     */
+    @Override
+    public void addToCacheOnRead(MutualTLSJWKSCacheKey key, MutualTLSJWKSCacheEntry entry) {
+        super.addToCacheOnRead(key, entry);
+    }
 }
