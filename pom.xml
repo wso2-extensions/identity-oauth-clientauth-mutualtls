@@ -383,7 +383,7 @@
 
     <properties>
         <carbon.identity.app.mgt.version>7.3.26</carbon.identity.app.mgt.version>
-        <carbon.identity.version>5.20.322</carbon.identity.version>
+        <carbon.identity.version>7.10.119</carbon.identity.version>
         <carbon.identity.application.common.version>5.25.305</carbon.identity.application.common.version>
         <carbon.utils.version>4.9.10</carbon.utils.version>
         <identity.inbound.auth.oauth.version>7.0.114</identity.inbound.auth.oauth.version>
@@ -445,7 +445,7 @@
 
         <!--Test Dependencies-->
         <commons.collections.version>3.2.2</commons.collections.version>
-        <testng.version>6.9.10</testng.version>
+        <testng.version>7.10.1</testng.version>
         <jacoco.version>0.7.9</jacoco.version>
         <mockito.version>5.3.1</mockito.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
