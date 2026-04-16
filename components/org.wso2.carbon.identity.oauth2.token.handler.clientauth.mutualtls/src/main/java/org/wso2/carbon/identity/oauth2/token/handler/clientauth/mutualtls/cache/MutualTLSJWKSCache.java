@@ -54,6 +54,7 @@ public class MutualTLSJWKSCache extends AuthenticationBaseCache<MutualTLSJWKSCac
      */
     @Override
     public void addToCacheOnRead(MutualTLSJWKSCacheKey key, MutualTLSJWKSCacheEntry entry) {
+        
         super.addToCacheOnRead(key, entry);
     }
 }
