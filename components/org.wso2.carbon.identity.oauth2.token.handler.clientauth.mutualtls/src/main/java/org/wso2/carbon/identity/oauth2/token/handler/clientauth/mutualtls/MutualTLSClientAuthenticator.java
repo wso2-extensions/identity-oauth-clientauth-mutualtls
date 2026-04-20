@@ -496,7 +496,7 @@ public class MutualTLSClientAuthenticator extends AbstractOAuthClientAuthenticat
                 }
                 resource = defaultResourceRetriever.retrieveResource(jwksUri);
                 MutualTLSJWKSCache.getInstance()
-                        .addToCache(mutualTLSJWKSCacheKey, new MutualTLSJWKSCacheEntry(resource));
+                        .addToCacheOnRead(mutualTLSJWKSCacheKey, new MutualTLSJWKSCacheEntry(resource));
             }
             if (resource != null) {
                 JsonParser jp = new JsonParser();
