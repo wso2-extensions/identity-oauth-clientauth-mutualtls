@@ -199,6 +199,9 @@ public class MutualTLSClientAuthenticator extends AbstractOAuthClientAuthenticat
                 }
                 return false;
             }
+            if (isPublicClient(bodyParams)) {
+                return false;
+            }
             if (validCertExistsAsAttribute(request)) {
                 if (log.isDebugEnabled()) {
                     log.debug("A valid certificate was found in the request attribute hence returning true.");
@@ -307,6 +310,41 @@ public class MutualTLSClientAuthenticator extends AbstractOAuthClientAuthenticat
                 .replaceAll(CommonConstants.END_CERT, StringUtils.EMPTY);
         // Removing all whitespaces and new lines.
         return certBody.replaceAll("\\s", StringUtils.EMPTY).replace("\\n", StringUtils.EMPTY);
+    }
+
+    /**
+     * Check whether the OAuth application referenced by the client_id in the request body is a public client.
+     * Public clients (e.g. Console, My Account) should not be authenticated via Mutual TLS even when a browser
+     * client certificate is present in the request.
+     *
+     * @param bodyParams Body parameters present in the request.
+     * @return true if the app is a public client, false otherwise. Returns false if the app cannot be resolved
+     * to avoid breaking existing flows.
+     */
+    private boolean isPublicClient(Map<String, List> bodyParams) {
+
+        Map<String, String> stringContent = getBodyParameters(bodyParams);
+        String clientId = stringContent.get(OAuth.OAUTH_CLIENT_ID);
+        if (StringUtils.isBlank(clientId)) {
+            return false;
+        }
+        try {
+            String tenantDomain = OAuth2Util.getTenantDomainOfOauthApp(clientId);
+            OAuthAppDO oAuthAppDO = OAuth2Util.getAppInformationByClientId(clientId, tenantDomain);
+            return oAuthAppDO.isBypassClientCredentials();
+        } catch (IdentityOAuth2Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Could not resolve OAuth application for client_id " + clientId +
+                        ". Proceeding with mTLS authenticator.", e);
+            }
+            return false;
+        } catch (InvalidOAuthClientException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid OAuth client_id " + clientId +
+                        ". Proceeding with mTLS authenticator.", e);
+            }
+            return false;
+        }
     }
 
     private boolean clientIdExistsAsParam(Map<String, List> contentParam) {

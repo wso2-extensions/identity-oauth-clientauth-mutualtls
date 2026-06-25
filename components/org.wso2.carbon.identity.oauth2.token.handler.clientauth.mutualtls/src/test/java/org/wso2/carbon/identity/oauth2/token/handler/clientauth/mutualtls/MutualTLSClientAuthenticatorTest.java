@@ -411,28 +411,45 @@ public class MutualTLSClientAuthenticatorTest {
     public Object[][] testCanAuthenticateData() {
 
         return new Object[][]{
-
-                {getCertificate(certificateContent), new HashMap<String, List>(), false},
-                {getCertificate(certificateContent), getBodyContentWithClientId(clientId), true},
+                // No clientId in body → false regardless of app config
+                {getCertificate(certificateContent), new HashMap<String, List>(), false, false},
+                // clientId present, confidential client (publicClient = false), cert present → true
+                {getCertificate(certificateContent), getBodyContentWithClientId(clientId), false, true},
+                // clientId present, public client (publicClient = true, e.g. Console/My Account) → false
+                {getCertificate(certificateContent), getBodyContentWithClientId(clientId), true, false},
         };
     }
 
     @Test(dataProvider = "testCanAuthenticateData")
-    public void testCanAuthenticate(X509Certificate certificate, HashMap<String, List> bodyContent, boolean canHandle)
-            throws
-            Exception {
+    public void testCanAuthenticate(X509Certificate certificate, HashMap<String, List> bodyContent,
+                                    boolean isPublicClient, boolean canHandle)
+            throws Exception {
 
-        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-        when(httpServletRequest.getAttribute(JAVAX_SERVLET_REQUEST_CERTIFICATE)).thenReturn(certificate);
-        assertEquals(mutualTLSClientAuthenticator.canAuthenticate(httpServletRequest, bodyContent, new
-                OAuthClientAuthnContext()), canHandle, "Expected can authenticate evaluation not received");
+        try (MockedStatic<OAuth2Util> oAuth2Util = Mockito.mockStatic(OAuth2Util.class)) {
+            OAuthAppDO appDO = new OAuthAppDO();
+            appDO.setBypassClientCredentials(isPublicClient);
+            oAuth2Util.when(() -> OAuth2Util.getTenantDomainOfOauthApp(anyString())).thenReturn("carbon.super");
+            oAuth2Util.when(() -> OAuth2Util.getAppInformationByClientId(anyString(), anyString())).thenReturn(appDO);
+
+            HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+            when(httpServletRequest.getAttribute(JAVAX_SERVLET_REQUEST_CERTIFICATE)).thenReturn(certificate);
+            assertEquals(mutualTLSClientAuthenticator.canAuthenticate(httpServletRequest, bodyContent, new
+                    OAuthClientAuthnContext()), canHandle, "Expected can authenticate evaluation not received");
+        }
     }
 
     @Test(dataProvider = "testCanAuthenticateData")
     public void testCanAuthenticateWithHeader(X509Certificate certificate,
-                                              HashMap<String, List> bodyContent, boolean canHandle) {
+                                              HashMap<String, List> bodyContent,
+                                              boolean isPublicClient, boolean canHandle) {
 
-        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class)) {
+        try (MockedStatic<IdentityUtil> identityUtil = Mockito.mockStatic(IdentityUtil.class);
+             MockedStatic<OAuth2Util> oAuth2Util = Mockito.mockStatic(OAuth2Util.class)) {
+            OAuthAppDO appDO = new OAuthAppDO();
+            appDO.setBypassClientCredentials(isPublicClient);
+            oAuth2Util.when(() -> OAuth2Util.getTenantDomainOfOauthApp(anyString())).thenReturn("carbon.super");
+            oAuth2Util.when(() -> OAuth2Util.getAppInformationByClientId(anyString(), anyString())).thenReturn(appDO);
+
             HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
             when(IdentityUtil.getProperty(CommonConstants.MTLS_AUTH_HEADER)).thenReturn("x-wso2-mtls-cert");
             when(httpServletRequest.getHeader("x-wso2-mtls-cert")).thenReturn(certificateContent3);
